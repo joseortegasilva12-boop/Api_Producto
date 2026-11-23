@@ -1,9 +1,11 @@
 // server.js
 import express from "express";
 import { db } from "./db.js";
+import authRouter, { verificarToken } from "./auth.js";
 
 const app = express();
 app.use(express.json());
+app.use(authRouter);
 
 // 1. GET /productos (devuelve todos, con filtro opcional por precio máximo)
 app.get("/productos", async (req, res) => {
@@ -36,7 +38,7 @@ app.get("/productos/:id", async (req, res) => {
 });
 
 // 3. POST /productos (crea uno nuevo)
-app.post("/productos", async (req, res) => {
+app.post("/productos", verificarToken, async (req, res) => {
   const { nombre, precio, stock = 0 } = req.body;
 
   if (!nombre || precio === undefined || precio < 0 || stock < 0) {
@@ -55,7 +57,7 @@ app.post("/productos", async (req, res) => {
 });
 
 // 4. PUT /productos/:id (reemplaza TODOS los campos)
-app.put("/productos/:id", async (req, res) => {
+app.put("/productos/:id", verificarToken, async (req, res) => {
   const id = Number(req.params.id);
   const { nombre, precio, stock } = req.body;
 
@@ -84,7 +86,7 @@ app.put("/productos/:id", async (req, res) => {
 });
 
 // 5. PATCH /productos/:id (cambia solo algunos campos)
-app.patch("/productos/:id", async (req, res) => {
+app.patch("/productos/:id", verificarToken, async (req, res) => {
   const id = Number(req.params.id);
   const { nombre, precio, stock } = req.body;
 
@@ -125,7 +127,7 @@ app.patch("/productos/:id", async (req, res) => {
 });
 
 // 6. DELETE /productos/:id (borra el producto)
-app.delete("/productos/:id", async (req, res) => {
+app.delete("/productos/:id", verificarToken, async (req, res) => {
   const id = Number(req.params.id);
   try {
     const [result] = await db.query("DELETE FROM productos WHERE id = ?", [id]);
